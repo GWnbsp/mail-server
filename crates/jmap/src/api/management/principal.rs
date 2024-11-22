@@ -511,25 +511,23 @@ impl PrincipalManager for Server {
                             )
                             .await?;
 
-                        if expire_session {
-                            // Remove entries from cache
-                            self.inner
-                                .data
-                                .http_auth_cache
-                                .retain(|_, id| id.item != account_id);
-                        }
+                        // Remove entries from cache and invalidate all sessions
+                        self.inner
+                            .data
+                            .http_auth_cache
+                            .retain(|_, id| id.item != account_id);
 
-                        if is_role_change {
+                        // Clear access tokens to force re-authentication
+                        self.inner.data.access_tokens.remove(&account_id);
+
+                        // Clear permissions cache if needed
+                        if matches!(typ, Type::Role | Type::Tenant) {
                             // Update permissions cache
                             self.inner.data.permissions.clear();
                             self.inner
                                 .data
                                 .permissions_version
                                 .fetch_add(1, Ordering::Relaxed);
-                        }
-
-                        if expire_token {
-                            self.inner.data.access_tokens.remove(&account_id);
                         }
 
                         Ok(JsonResponse::new(json!({
