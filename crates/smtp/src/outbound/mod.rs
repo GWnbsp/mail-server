@@ -218,9 +218,9 @@ pub enum NextHop<'x> {
     MX(&'x str),
 }
 
-impl<'x> NextHop<'x> {
+impl NextHop<'_> {
     #[inline(always)]
-    fn hostname(&self) -> &str {
+    pub fn hostname(&self) -> &str {
         match self {
             NextHop::MX(host) => {
                 if let Some(host) = host.strip_suffix('.') {
@@ -234,7 +234,7 @@ impl<'x> NextHop<'x> {
     }
 
     #[inline(always)]
-    fn fqdn_hostname(&self) -> Cow<'_, str> {
+    pub fn fqdn_hostname(&self) -> Cow<'_, str> {
         match self {
             NextHop::MX(host) => {
                 if !host.ends_with('.') {
